@@ -1,51 +1,28 @@
-#include <Servo.h>
-
-// Definições de pinos
-const int pirPin = 2;        // Sensor PIR conectado ao pino 2
-const int ledPin = 3;        // LED conectado ao pino 3
-const int relayPin = 4;      // Relé conectado ao pino 4
-const int buttonPin = 5;     // Botão de controle remoto conectado ao pino 5
-
-Servo servoMotor;
+int inputPin = 7;               // Escolhe o pino de entrada(para o sensor PIR)
+int pirState = LOW;             // Inicia o PIR, assumindo que não há movimento detectado
+int val = 0;                    // Variável que lê o estado do PIR
+int RELE_PIN = 6;               // Escolhe o pino onde esta o relé
 
 void setup() {
-  pinMode(pirPin, INPUT);
-  pinMode(ledPin, OUTPUT);
-  pinMode(relayPin, OUTPUT);
-  pinMode(buttonPin, INPUT);
-  
-  servoMotor.attach(6);     // Servo conectado ao pino 6
-
-  // Inicializar estados
-  digitalWrite(ledPin, LOW);
-  digitalWrite(relayPin, LOW);
-
+  pinMode(RELE_PIN, OUTPUT);      // Declara que o relé é um dispositivo de saida
+  pinMode(inputPin, INPUT);       // Declara que o sensor PIR é um dispositivo de entrada
   Serial.begin(9600);
 }
-
-void loop() {
-  int pirState = digitalRead(pirPin);
-  int buttonState = digitalRead(buttonPin);
-
-  // Detecção de movimento com PIR
-  if (pirState == HIGH) {
-    digitalWrite(ledPin, HIGH);      // Liga o LED
-    digitalWrite(relayPin, HIGH);    // Aciona o relé para ligar a luz
-    servoMotor.write(90);            // Move o servo motor (se necessário)
-    Serial.println("Movimento detectado: Luzes ligadas");
+void loop(){
+  val = digitalRead(inputPin);  
+  if (val == HIGH) {            
+    digitalWrite(RELE_PIN, LOW);  
+    delay(15000);
+if (pirState == LOW) {
+    Serial.println("Motion detected!");
+    pirState = HIGH;
+    }
   } else {
-    digitalWrite(ledPin, LOW);       // Desliga o LED
-    digitalWrite(relayPin, LOW);     // Desliga o relé para apagar a luz
-    servoMotor.write(0);             // Retorna o servo motor à posição original
-    Serial.println("Nenhum movimento: Luzes apagadas");
+      digitalWrite(RELE_PIN, HIGH); 
+      delay(30);    
+      if (pirState == HIGH){
+      Serial.println("Motion ended!");
+      pirState = LOW;
+    }
   }
-
-  // Controle remoto manual
-  if (buttonState == HIGH) {
-    digitalWrite(ledPin, !digitalRead(ledPin));   // Inverte o estado do LED
-    digitalWrite(relayPin, !digitalRead(relayPin)); // Inverte o estado do relé
-    delay(500); // Debounce
-  }
-
-  delay(200); // Pequeno atraso para evitar flutuações
 }
